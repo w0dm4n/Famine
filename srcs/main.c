@@ -14,5 +14,10 @@
 
 int     main(int argc, char **argv)
 {
-    printf("Coucou ça va ?\n");
+    setlocale(LC_CTYPE, "");
+    wprintf(L"®π® Hello world ®π®\n");
+    while (true)
+    {
+
+    }
 }

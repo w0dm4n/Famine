@@ -13,6 +13,12 @@
 #ifndef ALL_H
 # define ALL_H
 
-#include <stdio.h>
+# include <stdio.h>
+# include <locale.h>
+# include "../libft/includes/libft.h"
+
+# define bool	int
+# define true	1
+# define false	0
 
 #endif
