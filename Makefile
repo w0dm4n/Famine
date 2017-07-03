@@ -13,7 +13,8 @@
 NAME = Famine
 
 SRCS =	\
-		srcs/main.c
+		srcs/main.c \
+		srcs/famine.c
 
 O_FILE = $(SRCS:.c=.o)
 

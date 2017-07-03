@@ -11,32 +11,33 @@
 /* ************************************************************************** */
 
 #include "all.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <windows.h>
 
-/*int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
-                    PSTR szCmdParam, int iCmdShow)
+/*
+**	Print the message if famine is on DEBUG_MODE
+*/
+void				print_message(t_famine *famine, char *message)
 {
-    FreeConsole();
-    for (;;) {
-        printf("Hello !\n");
-        //action here
-    }
-    return 0;
-}*/
+	if (famine->debug == true) {
+		printf("%s\n", message);
+	}
+}
 
-int     main(int argc, char **argv)
+/*
+**	Hide and close the current terminal
+*/
+void				close_console()
 {
-    HWND hWnd = GetConsoleWindow();
-    ShowWindow( hWnd, SW_MINIMIZE );
-    ShowWindow( hWnd, SW_HIDE );
-    FreeConsole();
-    setlocale(LC_CTYPE, "");
-    wprintf(L"®π® Hello world ®π®\n");
-    while (true)
-    {
+	HWND hWnd = GetConsoleWindow();
+	ShowWindow(hWnd, SW_MINIMIZE);
+	ShowWindow(hWnd, SW_HIDE);
+	FreeConsole();
+}
 
-    }
+/*
+**	Main entry point
+*/
+int					main(int argc, char **argv)
+{
+	setlocale(LC_CTYPE, "");
+	init_famine(argc, argv);
 }

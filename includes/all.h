@@ -15,10 +15,30 @@
 
 # include <stdio.h>
 # include <locale.h>
+# include <windows.h>
 # include "../libft/includes/libft.h"
 
-# define bool	int
-# define true	1
-# define false	0
+# define APP_ENV	"APPDATA"
+# define TEMP_PATH	"\\Local\\Temp"
+# define DEBUG_MODE	"DEBUG"
+# define bool		int
+# define true		1
+# define false		0
+
+typedef struct		s_famine
+{
+	char			*path;
+	bool			debug;
+}					t_famine;
+
+/*
+**	MAIN
+*/
+void				close_console();
+
+/*
+**	FAMINE
+*/
+void				init_famine(int, char**);
 
 #endif
