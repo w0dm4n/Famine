@@ -18,6 +18,8 @@ SRCS =	\
 
 O_FILE = $(SRCS:.c=.o)
 
+FLAGS = -mwindows
+
 #FLAGS = -Wall -Wextra -Werror
 
 all: $(NAME)

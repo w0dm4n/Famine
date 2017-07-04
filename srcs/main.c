@@ -34,6 +34,24 @@ void				close_console()
 }
 
 /*
+**	Start a new console and relink file descriptor 0, 1, 2
+**	then resizing window 300x600 to position x(100) y(100) and disabling resizing
+*/
+void				start_debug_console()
+{
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+	HWND hWnd = GetConsoleWindow();
+	if (hWnd) {
+		SetWindowPos(hWnd, 0, 100, 100, 300, 600, NO_FLAGS);
+		SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) &~ WS_SIZEBOX);
+	}
+}
+
+
+/*
 **	Main entry point
 */
 int					main(int argc, char **argv)

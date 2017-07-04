@@ -78,10 +78,15 @@ void				init_famine(int argc, char **argv)
 	if (famine->path != NULL)
 	{
 		check_debug_mode(famine, argc, argv);
-		if (famine->debug == false) {
-			close_console();
+		if (famine->debug == true) {
+			start_debug_console();
 		}
-		printf("Hello ! :D\n");
+
+		
+		print_message(famine, "Famine job's done !");
+		if (famine->debug == true) {
+			while (true) ;
+		}
 	}
 	else {
 		print_message(famine, "Something is wrong with the temporary path");

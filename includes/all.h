@@ -24,6 +24,7 @@
 # define bool		int
 # define true		1
 # define false		0
+# define NO_FLAGS	0
 
 typedef struct		s_famine
 {
@@ -35,6 +36,7 @@ typedef struct		s_famine
 **	MAIN
 */
 void				close_console();
+void				start_debug_console();
 
 /*
 **	FAMINE
