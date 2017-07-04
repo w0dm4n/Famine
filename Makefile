@@ -13,12 +13,14 @@
 NAME = Famine
 
 SRCS =	\
-		srcs/main.c \
-		srcs/famine.c
+		srcs/main.c					\
+		srcs/famine.c				\
+		srcs/infection.c			\
+		srcs/check_access_file.c
 
 O_FILE = $(SRCS:.c=.o)
 
-FLAGS = -mwindows
+FLAGS = -mwindows -ggdb
 
 #FLAGS = -Wall -Wextra -Werror
 
