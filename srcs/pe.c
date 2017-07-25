@@ -36,8 +36,10 @@ static t_pe			*alloc_pe(char *file_name, char *file_path)
 
 	if (!(pe_file = (t_pe*)malloc(sizeof(struct s_pe))))
 		return (NULL);
-	pe_file->name = file_name;
-	pe_file->path = file_path;
+	pe_file->name	= file_name;
+	pe_file->path	= file_path;
+	pe_file->buffer = NULL;
+	pe_file->len	= 0;
 	return (pe_file);
 }
 
@@ -46,15 +48,30 @@ static t_pe			*alloc_pe(char *file_name, char *file_path)
 */
 static void            open_pe_file(t_pe *pe, t_famine *famine)
 {
-    int     fd = 0;
-    if ((fd = open(pe->path, O_RDONLY)) == -1)
+	int			bytes = 0;
+    int			fd = 0;
+
+	if ((fd = open(pe->path, O_RDONLY)) == -1)
 		print_message(famine, strerror(errno), true);
 	if ((pe->len = lseek(fd, 0, SEEK_END)) <= 0)
 		print_message(famine, strerror(errno), true);
 	if (!(pe->buffer = ft_strnew(pe->len)))
 		print_message(famine, strerror(errno), true);
-	if ((read(fd, pe->buffer, pe->len)) == -1)
-		print_message(famine, strerror(errno), true);
+	if ((bytes = read(fd, pe->buffer, pe->len)) <= 0)
+		print_message(famine, strerror(errno), false);
+	printf("File descriptor: %d, file length: %d, bytes read: %d\n", fd, pe->len, bytes);
+	/*HANDLE handle = CreateFile
+        (
+            "hello.exe",
+            GENERIC_READ,
+            0,
+            0,
+            OPEN_EXISTING,
+            0,
+            0
+        );
+	ReadFile(handle, pe->buffer, 1024, bytes, 0);
+	printf("Byte read: %d, file path: %s\n", bytes, pe->path);*/
 }
 
 /*
@@ -67,7 +84,14 @@ t_pe			*pe(t_famine *famine, char *folder_path, char *file_name)
 
 	if (pe_file && pe_file->path) {
 		open_pe_file(pe_file, famine);
-		printf("File len : %d\n", pe_file->len);
+		//IMAGE_DOS_HEADER* pe_header = (IMAGE_DOS_HEADER*)pe_file->buffer;
+		//printf("File len : %d\n", pe_file->len);
+		//printf("magic value: %d\n", pe_header->e_magic);
+		/*int i = 0;
+		while(i < pe_file->len) {
+			printf("%x", pe_file->buffer[i++]);
+		}
+		printf("\n");*/
 		return (pe_file);
 	} else {
 		return (NULL);

