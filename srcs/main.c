@@ -13,16 +13,6 @@
 #include "all.h"
 
 /*
-**	Print the message if famine is on DEBUG_MODE
-*/
-void				print_message(t_famine *famine, char *message)
-{
-	if (famine->debug == true) {
-		printf("%s\n", message);
-	}
-}
-
-/*
 **	Hide and close the current terminal
 */
 void				close_console()

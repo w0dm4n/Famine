@@ -16,7 +16,9 @@ SRCS =	\
 		srcs/main.c					\
 		srcs/famine.c				\
 		srcs/infection.c			\
-		srcs/check_access_file.c
+		srcs/check_access_file.c	\
+		srcs/pe.c					\
+		srcs/utils.c
 
 O_FILE = $(SRCS:.c=.o)
 

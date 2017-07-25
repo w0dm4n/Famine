@@ -51,6 +51,6 @@ struct stat				*check_access_file(char *file, t_famine *famine)
 		return (file_stat);
 	}
 	else
-		print_message(famine, strerror(errno));
+		print_message(famine, strerror(errno), true);
 	return (NULL);
 }

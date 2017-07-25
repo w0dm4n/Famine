@@ -88,6 +88,6 @@ void				init_famine(int argc, char **argv)
 		}
 	}
 	else {
-		print_message(famine, "Something is wrong with the temporary path");
+		print_message(famine, "Something is wrong with the temporary path", true);
 	}
 }

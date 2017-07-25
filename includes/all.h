@@ -20,20 +20,27 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <unistd.h>
+# include <fcntl.h>
+# include <errno.h>
 # include "../libft/includes/libft.h"
 
 # define APP_ENV	"APPDATA"
 # define TEMP_PATH	"\\Local\\Temp"
+# define BACKSLASH	"\\"
 # define DEBUG_MODE	"DEBUG"
 # define bool		int
 # define true		1
 # define false		0
 # define NO_FLAGS	0
+# define EXIT_CODE	-1
 
-typedef struct		s_pe_file
+typedef struct		s_pe
 {
-
-}					t_pe_file;
+	char			*name;
+	char			*path;
+	int				len;
+	char			*buffer;
+}					t_pe;
 
 typedef struct		s_famine
 {
@@ -48,6 +55,12 @@ void				close_console();
 void				start_debug_console();
 
 /*
+**	UTILS
+*/
+void				*ft_mmap(int fd, size_t size);
+void				print_message(t_famine *famine, char *message, bool leave);
+
+/*
 **	FAMINE
 */
 void				init_famine(int, char**);
@@ -60,5 +73,10 @@ void				infect_folder(t_famine *famine, char *folder_name);
 /*
 **	ACCESS FILE
 */
-struct stat				*check_access_file(char *file, t_famine *famine);
+struct stat			*check_access_file(char *file, t_famine *famine);
+
+/*
+**	READ PE
+*/
+t_pe				*pe(t_famine *famine, char *folder_path, char *file_name);
 #endif
