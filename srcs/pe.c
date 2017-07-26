@@ -48,30 +48,115 @@ static t_pe			*alloc_pe(char *file_name, char *file_path)
 */
 static void            open_pe_file(t_pe *pe, t_famine *famine)
 {
-	int			bytes = 0;
-    int			fd = 0;
+	int			bytes	= 0;
+    int			fd		= 0;
+	HANDLE		file	= NULL;
+	HANDLE		mapping	= NULL;
 
-	if ((fd = open(pe->path, O_RDONLY)) == -1)
+	if ((fd = open(pe->path, O_RDWR)) == -1)
 		print_message(famine, strerror(errno), true);
 	if ((pe->len = lseek(fd, 0, SEEK_END)) <= 0)
 		print_message(famine, strerror(errno), true);
-	if (!(pe->buffer = ft_strnew(pe->len)))
+	close (fd);
+	if ((file = CreateFile(pe->path, GENERIC_READ,
+	FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) == NULL) {
 		print_message(famine, strerror(errno), true);
-	if ((bytes = read(fd, pe->buffer, pe->len)) <= 0)
-		print_message(famine, strerror(errno), false);
-	printf("File descriptor: %d, file length: %d, bytes read: %d\n", fd, pe->len, bytes);
-	/*HANDLE handle = CreateFile
-        (
-            "hello.exe",
-            GENERIC_READ,
-            0,
-            0,
-            OPEN_EXISTING,
-            0,
-            0
-        );
-	ReadFile(handle, pe->buffer, 1024, bytes, 0);
-	printf("Byte read: %d, file path: %s\n", bytes, pe->path);*/
+	}
+	if ((mapping = CreateFileMapping(file, 0, PAGE_READONLY, 0, 0, 0)) == NULL)
+		print_message(famine, strerror(errno), true);
+	pe->buffer = MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
+}
+
+/*
+**	Get magic value from DOS Header in hex
+*/
+static char			*get_dos_magic(t_pe *pe)
+{
+	char	*value			= NULL;
+	char	*save_pointer	= NULL;
+	char	*magic			= NULL;
+	int		i = 0;
+
+	if (!(value = ft_strnew(MAGIC_LENGTH * 2)))
+		return ;
+	if (!(magic = ft_strnew(MAGIC_LENGTH * 2)))
+		return ;
+	save_pointer = value;
+	while (i < MAGIC_LENGTH)
+	{
+		asprintf(&value, "%x", pe->buffer[i++]);
+		ft_strncat((char*) magic, value, 2);
+		value += 2;
+	}
+	free(save_pointer);
+	return (ft_strtoupper(magic));
+}
+
+/*
+**	Get PE Signature from PE Header in hex
+*/
+static char			*get_pe_signature(t_pe *pe)
+{
+	char	*value			= NULL;
+
+	if (!(value = ft_strnew(MAGIC_LENGTH * 2)))
+		return (NULL);
+	asprintf(&value, "%x", pe->pe_header->Signature);
+	return (value);
+}
+
+/*
+**	Check if the PE file is a 64bits executable
+*/
+static bool		check_architecture_64(t_pe *pe)
+{
+	char	*value			= NULL;
+
+	if (!(value = ft_strnew(MAGIC_LENGTH * 2)))
+		return (false);
+	asprintf(&value, "%x", pe->pe_header->OptionalHeader.Magic);
+	return (ft_strcmp(value, ARCHITECTURE_64) == 0);
+}
+
+static void		read_section(t_pe *pe)
+{
+	IMAGE_SECTION_HEADER	*section = (IMAGE_SECTION_HEADER*)((void*)pe->pe_header + sizeof(IMAGE_NT_HEADERS));
+	int i = 0;
+	while (i < pe->pe_header->FileHeader.NumberOfSections)
+	{
+		if (!ft_strcmp(section[i].Name, ".data")) {
+			printf("Section name: %s, size: %x, offset: %d\n", section[i].Name,
+			section[i].Misc.VirtualSize, section[i].PointerToRawData);
+
+			char *buffer = (char*)(pe->buffer + section[i].PointerToRawData);
+			int slt = 0;
+			while (slt < section[i].SizeOfRawData) {
+				printf("%c", buffer[slt]);
+				slt++;
+			}
+		}
+		i++;
+	}
+}
+
+/*
+** Set and check the DOS && PE Header
+*/
+static bool		pe_header(t_pe *pe)
+{
+	pe->dos_header		= (IMAGE_DOS_HEADER*) pe->buffer;
+	char *magic			= get_dos_magic(pe);
+
+	if (!ft_strcmp(magic, DOS_MAGIC)) {
+		pe->pe_header = (IMAGE_NT_HEADERS*)(pe->buffer + pe->dos_header->e_lfanew);
+		if (!ft_strcmp(get_pe_signature(pe), PE_SIGNATURE) && check_architecture_64(pe)) {
+			read_section(pe);
+		} else {
+			return (false);
+		}
+	} else {
+		return (false);
+	}
 }
 
 /*
@@ -84,16 +169,9 @@ t_pe			*pe(t_famine *famine, char *folder_path, char *file_name)
 
 	if (pe_file && pe_file->path) {
 		open_pe_file(pe_file, famine);
-		//IMAGE_DOS_HEADER* pe_header = (IMAGE_DOS_HEADER*)pe_file->buffer;
-		//printf("File len : %d\n", pe_file->len);
-		//printf("magic value: %d\n", pe_header->e_magic);
-		/*int i = 0;
-		while(i < pe_file->len) {
-			printf("%x", pe_file->buffer[i++]);
+		if (pe_header(pe_file) == true) {
+			return (pe_file);
 		}
-		printf("\n");*/
-		return (pe_file);
-	} else {
-		return (NULL);
 	}
+	return (NULL);
 }

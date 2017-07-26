@@ -35,7 +35,7 @@ void				start_debug_console()
 	freopen("CONOUT$", "w", stderr);
 	HWND hWnd = GetConsoleWindow();
 	if (hWnd) {
-		SetWindowPos(hWnd, 0, 100, 100, 300, 600, NO_FLAGS);
+		SetWindowPos(hWnd, 0, 100, 100, 600, 600, NO_FLAGS);
 		SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) &~ WS_SIZEBOX);
 	}
 }

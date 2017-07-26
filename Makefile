@@ -18,7 +18,8 @@ SRCS =	\
 		srcs/infection.c			\
 		srcs/check_access_file.c	\
 		srcs/pe.c					\
-		srcs/utils.c
+		srcs/utils.c				\
+		srcs/asprintf.c
 
 O_FILE = $(SRCS:.c=.o)
 

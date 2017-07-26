@@ -20,6 +20,14 @@
 	return (mmap(0, size, PROT_READ, MAP_SHARED, fd, 0));
 }*/
 
+uint32_t	swap_int32(uint32_t x)
+{
+	return ((uint32_t)((((uint32_t)(x) & 0xff000000) >> 24) | \
+		(((uint32_t)(x) & 0x00ff0000) >> 8) | \
+		(((uint32_t)(x) & 0x0000ff00) << 8) | \
+		(((uint32_t)(x) & 0x000000ff) << 24)));
+}
+
 /*
 **	Print the message if famine is on DEBUG_MODE
 */

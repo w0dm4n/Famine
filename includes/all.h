@@ -23,16 +23,24 @@
 # include <fcntl.h>
 # include <errno.h>
 # include "../libft/includes/libft.h"
+# include <stdarg.h>
 
-# define APP_ENV	"APPDATA"
-# define TEMP_PATH	"\\Local\\Temp"
-# define BACKSLASH	"\\"
-# define DEBUG_MODE	"DEBUG"
-# define bool		int
-# define true		1
-# define false		0
-# define NO_FLAGS	0
-# define EXIT_CODE	-1
+# define APP_ENV			"APPDATA"
+# define TEMP_PATH			"\\Local\\Temp"
+# define BACKSLASH			"\\"
+# define DEBUG_MODE			"DEBUG"
+# define bool				int
+# define true				1
+# define false				0
+# define NO_FLAGS			0
+# define EXIT_CODE			-1
+# define MAGIC_LENGTH		2
+# define DOS_MAGIC			"4D5A" // MZ - constant signature
+# define PE_SIGNATURE		"4550" // soit "PE\0\0"
+# define ARCHITECTURE_64	"20b" // 64b hex
+
+typedef __int32				int32_t;
+typedef unsigned __int32	uint32_t;
 
 #ifndef _WINDEF_
 	# define _WINDEF_
@@ -67,39 +75,130 @@
 	typedef LONG_PTR            LRESULT;
 
 	/*
-	**	PE Header (DOS Header)
+	**	DOS Header
 	*/
 	typedef struct	_IMAGE_DOS_HEADER
 	{
-		WORD	 	e_magic;
-		WORD 		e_cblp;
-		WORD 		e_cp;
-		WORD 		e_crlc;
-		WORD 		e_cparhdr;
-		WORD 		e_minalloc;
-		WORD 		e_maxalloc;
-		WORD 		e_ss;
-		WORD 		e_sp;
-		WORD 		e_csum;
-		WORD 		e_ip;
-		WORD 		e_cs;
-		WORD 		e_lfarlc;
-		WORD 		e_ovno;
-		WORD 		e_res[4];
-		WORD	 	e_oemid;
-		WORD 		e_oeminfo;
-		WORD 		e_res2[10];
-		LONG		 e_lfanew;
+		WORD   e_magic;                     // Magic number
+	    WORD   e_cblp;                      // Bytes on last page of file
+	    WORD   e_cp;                        // Pages in file
+	    WORD   e_crlc;                      // Relocations
+	    WORD   e_cparhdr;                   // Size of header in paragraphs
+	    WORD   e_minalloc;                  // Minimum extra paragraphs needed
+	    WORD   e_maxalloc;                  // Maximum extra paragraphs needed
+	    WORD   e_ss;                        // Initial (relative) SS value
+	    WORD   e_sp;                        // Initial SP value
+	    WORD   e_csum;                      // Checksum
+	    WORD   e_ip;                        // Initial IP value
+	    WORD   e_cs;                        // Initial (relative) CS value
+	    WORD   e_lfarlc;                    // File address of relocation table
+	    WORD   e_ovno;                      // Overlay number
+	    WORD   e_res[4];                    // Reserved words
+	    WORD   e_oemid;                     // OEM identifier (for e_oeminfo)
+	    WORD   e_oeminfo;                   // OEM information; e_oemid specific
+	    WORD   e_res2[10];                  // Reserved words
+	    LONG   e_lfanew;                    // File address of new exe header
 	}				IMAGE_DOS_HEADER;
 
+	/*
+	**	Les répertoires sont des parties du fichier utilisées lors de son chargement.
+	**	La position et la taille des données de ces répertoires sont indiquées.
+	*/
+	typedef struct			_IMAGE_DATA_DIRECTORY
+	{
+		DWORD				VirtualAddress;
+		DWORD				Size;
+	}						IMAGE_DATA_DIRECTORY;
+
+	typedef struct		_IMAGE_FILE_HEADER
+	{
+	  WORD  			Machine;
+	  WORD  			NumberOfSections;
+	  DWORD 			TimeDateStamp;
+	  DWORD 			PointerToSymbolTable;
+	  DWORD 			NumberOfSymbols;
+	  WORD  			SizeOfOptionalHeader;
+	  WORD  			Characteristics;
+  	}					IMAGE_FILE_HEADER;
+
+	/*
+	**	Optional information about PE
+	*/
+	typedef struct				_IMAGE_OPTIONAL_HEADER
+	{
+		WORD					Magic;
+		UCHAR					MajorLinkerVersion;
+		UCHAR					MinorLinkerVersion;
+		ULONG					SizeOfCode;
+		ULONG					SizeOfInitializedData;
+		ULONG					SizeOfUninitializedData;
+		ULONG					AddressOfEntryPoint;
+		ULONG					BaseOfCode;
+		ULONG					BaseOfData;
+		ULONG					ImageBase;
+		ULONG					SectionAlignment;
+		ULONG					FileAlignment;
+		WORD					MajorOperatingSystemVersion;
+		WORD					MinorOperatingSystemVersion;
+		WORD					MajorImageVersion;
+		WORD					MinorImageVersion;
+		WORD					MajorSubsystemVersion;
+		WORD					MinorSubsystemVersion;
+		ULONG					Win32VersionValue;
+		ULONG					SizeOfImage;
+		ULONG					SizeOfHeaders;
+		ULONG					CheckSum;
+		WORD					Subsystem;
+		WORD					DllCharacteristics;
+		ULONG					SizeOfStackReserve;
+		ULONG					SizeOfStackCommit;
+		ULONG					SizeOfHeapReserve;
+		ULONG					SizeOfHeapCommit;
+		ULONG					LoaderFlags;
+		ULONG					NumberOfRvaAndSizes;
+		IMAGE_DATA_DIRECTORY	DataDirectory[16];
+	}							IMAGE_OPTIONAL_HEADER;
+
+	/*
+	**	La Table des Sections est située juste derrière l'en-tête PE. Il s'agit d'un tableau contenant plusieurs structures IMAGE_SECTION_HEADER.
+	**	Ces structures contiennent les informations sur les sections du binaire devant être chargé en mémoire.
+	*/
+	typedef struct			_IMAGE_SECTION_HEADER
+	{
+	  BYTE					Name[IMAGE_SIZEOF_SHORT_NAME];
+	  union {
+	      DWORD PhysicalAddress;
+	      DWORD VirtualSize;
+	  } Misc;
+	  DWORD					VirtualAddress;
+	  DWORD					SizeOfRawData;
+	  DWORD					PointerToRawData;
+	  DWORD					PointerToRelocations;
+	  DWORD					PointerToLinenumbers;
+	  WORD					NumberOfRelocations;
+	  WORD					NumberOfLinenumbers;
+	  DWORD					Characteristics;
+	}						IMAGE_SECTION_HEADER;
+
+	/*
+	**	PE Header
+	*/
+	typedef struct			_IMAGE_NT_HEADER
+	{
+  		DWORD                 	Signature;
+  		IMAGE_FILE_HEADER     	FileHeader;
+  		IMAGE_OPTIONAL_HEADER 	OptionalHeader;
+	}						IMAGE_NT_HEADERS;
 #endif
 
 typedef struct		s_pe
 {
-	char			*name;
-	char			*path;
-	int				len;
-	char			*buffer;
+	char				*name;
+	char				*path;
+	int					len;
+	char				*buffer;
+	IMAGE_DOS_HEADER*	dos_header;
+	IMAGE_NT_HEADERS*	pe_header;
 }					t_pe;
 
 typedef struct		s_famine
@@ -119,6 +218,13 @@ void				start_debug_console();
 */
 void				*ft_mmap(int fd, size_t size);
 void				print_message(t_famine *famine, char *message, bool leave);
+
+/*
+**	ASPRINTF
+*/
+int					vasprintf(char **, const char *, va_list);
+int					asprintf(char **, const char *, ...);
+
 
 /*
 **	FAMINE

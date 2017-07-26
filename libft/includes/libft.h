@@ -69,6 +69,7 @@ char				**ft_strsplit(char const *s, char c);
 char				*ft_itoa(int n);
 char				*ft_itoabase_uint(unsigned long int nbr, char *base);
 char				*ft_strtolower(char *string);
+char				*ft_strtoupper(char *str);
 
 typedef	struct		s_list
 {
