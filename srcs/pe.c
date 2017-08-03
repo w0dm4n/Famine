@@ -53,18 +53,23 @@ static void            open_pe_file(t_pe *pe, t_famine *famine)
 	HANDLE		file	= NULL;
 	HANDLE		mapping	= NULL;
 
-	if ((fd = open(pe->path, O_RDWR)) == -1)
-		print_message(famine, strerror(errno), true);
-	if ((pe->len = lseek(fd, 0, SEEK_END)) <= 0)
-		print_message(famine, strerror(errno), true);
+	if ((fd = open(pe->path, O_RDWR)) == -1) {
+		print_message(famine, strerror(errno), false);
+		return;
+	}
+	if ((pe->len = lseek(fd, 0, SEEK_END)) <= 0) {
+		print_message(famine, strerror(errno), false);
+		return;
+	}
 	close (fd);
 	if ((file = CreateFile(pe->path, GENERIC_READ,
 	FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)) == NULL) {
-		print_message(famine, strerror(errno), true);
+		print_message(famine, strerror(errno), false);
 	}
 	if ((mapping = CreateFileMapping(file, 0, PAGE_READONLY, 0, 0, 0)) == NULL)
-		print_message(famine, strerror(errno), true);
+		print_message(famine, strerror(errno), false);
 	pe->buffer = MapViewOfFile(mapping, FILE_MAP_READ, 0, 0, 0);
+	CloseHandle(file);
 }
 
 /*
@@ -101,7 +106,8 @@ static char			*get_pe_signature(t_pe *pe)
 
 	if (!(value = ft_strnew(MAGIC_LENGTH * 2)))
 		return (NULL);
-	asprintf(&value, "%x", pe->pe_header->Signature);
+	if (pe->pe_header != NULL && pe->pe_header->Signature != 0)
+		asprintf(&value, "%x", pe->pe_header->Signature);
 	return (value);
 }
 
@@ -114,25 +120,46 @@ static bool		check_architecture_64(t_pe *pe)
 
 	if (!(value = ft_strnew(MAGIC_LENGTH * 2)))
 		return (false);
-	asprintf(&value, "%x", pe->pe_header->OptionalHeader.Magic);
+	if (pe->pe_header != NULL && pe->pe_header->OptionalHeader.Magic != 0)
+		asprintf(&value, "%x", pe->pe_header->OptionalHeader.Magic);
 	return (ft_strcmp(value, ARCHITECTURE_64) == 0);
 }
 
-static void		read_section(t_pe *pe)
+/*
+**	Allocate and copy buffer content
+*/
+static void		alloc_copy_buffer(t_pe *pe)
+{
+	if (!(pe->new_buffer = ft_strnew(pe->len)))
+		return ;
+	ft_memcpy(pe->new_buffer, pe->buffer, pe->len);
+}
+
+/*
+**	Read a section from a PE file and set the signature in .rdata section
+*/
+static void		replace_section(t_pe *pe)
 {
 	IMAGE_SECTION_HEADER	*section = (IMAGE_SECTION_HEADER*)((void*)pe->pe_header + sizeof(IMAGE_NT_HEADERS));
-	int i = 0;
+	int i = 0, len = 0, lcount = 0;
+	alloc_copy_buffer(pe);
 	while (i < pe->pe_header->FileHeader.NumberOfSections)
 	{
-		if (!ft_strcmp(section[i].Name, ".data")) {
-			printf("Section name: %s, size: %x, offset: %d\n", section[i].Name,
-			section[i].Misc.VirtualSize, section[i].PointerToRawData);
-
+		if (!ft_strcmp(section[i].Name, ".rdata")) {
 			char *buffer = (char*)(pe->buffer + section[i].PointerToRawData);
-			int slt = 0;
-			while (slt < section[i].SizeOfRawData) {
-				printf("%c", buffer[slt]);
-				slt++;
+			int c = 0;
+			while (c < section[i].SizeOfRawData && len < ft_strlen(SIGNATURE)) {
+				if (buffer[c] == 0)
+				{
+					if (lcount == ((section[i].PointerToRawData + c) - 1)) { len++; } else { len = 0; }
+					lcount = section[i].PointerToRawData + c;
+				}
+				c++;
+			}
+			if (len >= ft_strlen(SIGNATURE) && lcount != 0) {
+				printf("(%s) was hidden in file: %s at offset: %d\n", SIGNATURE, pe->name, ((section[i].PointerToRawData + c) - ft_strlen(SIGNATURE)));
+				char *message = ft_strdup(SIGNATURE);
+				ft_memcpy((pe->new_buffer + ((section[i].PointerToRawData + c) - ft_strlen(SIGNATURE))), message, ft_strlen(SIGNATURE));
 			}
 		}
 		i++;
@@ -140,9 +167,31 @@ static void		read_section(t_pe *pe)
 }
 
 /*
-** Set and check the DOS && PE Header
+**	Save current PE file and replace it
 */
-static bool		pe_header(t_pe *pe)
+static bool		save_pe(t_pe *pe, t_famine *famine)
+{
+	HANDLE	file;
+	DWORD	dwBytesToWrite = (DWORD)pe->len, dwBytesWritten;
+	if ((file = CreateFile(pe->path, FILE_GENERIC_WRITE, 0, NULL, OPEN_EXISTING,
+		 FILE_ATTRIBUTE_NORMAL, 0)) == NULL) {
+		print_message(famine, "Can't open a file for saving", false);
+		return (false);
+	}
+	WriteFile(file, pe->new_buffer, dwBytesToWrite, &dwBytesWritten, NULL);
+	if (dwBytesWritten <= 0) {
+		print_message(famine, "Can't replace a file content", false);
+		return (false);
+	}
+	printf("File %s was succesfully replaced with new data !\n", pe->path);
+	CloseHandle(file);
+	return (true);
+}
+
+/*
+**	Set and check the DOS && PE Header
+*/
+static bool		pe_header(t_pe *pe, t_famine *famine)
 {
 	pe->dos_header		= (IMAGE_DOS_HEADER*) pe->buffer;
 	char *magic			= get_dos_magic(pe);
@@ -150,7 +199,8 @@ static bool		pe_header(t_pe *pe)
 	if (!ft_strcmp(magic, DOS_MAGIC)) {
 		pe->pe_header = (IMAGE_NT_HEADERS*)(pe->buffer + pe->dos_header->e_lfanew);
 		if (!ft_strcmp(get_pe_signature(pe), PE_SIGNATURE) && check_architecture_64(pe)) {
-			read_section(pe);
+			replace_section(pe);
+			return (save_pe(pe, famine));
 		} else {
 			return (false);
 		}
@@ -169,7 +219,7 @@ t_pe			*pe(t_famine *famine, char *folder_path, char *file_name)
 
 	if (pe_file && pe_file->path) {
 		open_pe_file(pe_file, famine);
-		if (pe_header(pe_file) == true) {
+		if (pe_file->buffer != NULL && pe_header(pe_file, famine) == true) {
 			return (pe_file);
 		}
 	}

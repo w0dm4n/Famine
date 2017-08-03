@@ -55,13 +55,13 @@ void				infect_folder(t_famine *famine, char *folder_name)
 	t_pe			*pe_file		= NULL;
 
 	if (!(directory = opendir(target_path))) {
-		print_message(famine, strerror(errno), true);
+		print_message(famine, strerror(errno), false);
 		return;
 	}
 	while ((file = readdir(directory)) != NULL) {
 		if (check_file_validity(famine, target_path, file->d_name)) {
-			if ((pe_file = pe(famine, target_path, file->d_name)) != NULL) {
-				//printf("Set signature in PE file named %s\n", pe_file->name);
+			if ((pe_file = pe(famine, target_path, file->d_name)) == NULL) {
+				printf("The file %s is not a valid PE file, sorry :(\n", file->d_name);
 			}
 		}
 	}

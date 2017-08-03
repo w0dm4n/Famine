@@ -40,6 +40,14 @@ void				start_debug_console()
 	}
 }
 
+/*
+** Just in case a SEGV is knocking...
+*/
+void signal_handler(int signal)
+{
+	printf("Something went wrong, i'm dying... good bye\n");
+	exit (1);
+}
 
 /*
 **	Main entry point
@@ -47,5 +55,6 @@ void				start_debug_console()
 int					main(int argc, char **argv)
 {
 	setlocale(LC_CTYPE, "");
+	signal(SIGSEGV, signal_handler);
 	init_famine(argc, argv);
 }
