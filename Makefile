@@ -19,7 +19,8 @@ SRCS =	\
 		srcs/check_access_file.c	\
 		srcs/pe.c					\
 		srcs/utils.c				\
-		srcs/asprintf.c
+		srcs/asprintf.c				\
+		srcs/registery.c
 
 O_FILE = $(SRCS:.c=.o)
 

