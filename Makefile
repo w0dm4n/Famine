@@ -20,7 +20,8 @@ SRCS =	\
 		srcs/pe.c					\
 		srcs/utils.c				\
 		srcs/asprintf.c				\
-		srcs/registery.c
+		srcs/registery.c			\
+		srcs/recursive.c
 
 O_FILE = $(SRCS:.c=.o)
 
