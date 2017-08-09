@@ -220,13 +220,6 @@ typedef struct		s_famine
 	char			*recursive_path;
 }					t_famine;
 
-typedef struct		s_folder
-{
-	char			*folder;
-	bool			infected;
-	struct s_folder	*next;
-}					t_folder;
-
 /*
 **	MAIN
 */
