@@ -83,9 +83,9 @@ static char			*get_dos_magic(t_pe *pe)
 	int		i = 0;
 
 	if (!(value = ft_strnew(MAGIC_LENGTH * 2)))
-		return ;
+		return (NULL);
 	if (!(magic = ft_strnew(MAGIC_LENGTH * 2)))
-		return ;
+		return (NULL);
 	save_pointer = value;
 	while (i < MAGIC_LENGTH)
 	{
@@ -212,9 +212,9 @@ static bool		pe_header(t_pe *pe, t_famine *famine)
 /*
 **	Read a PE file
 */
-t_pe			*pe(t_famine *famine, char *folder_path, char *file_name)
+t_pe			*pe(t_famine *famine, char *folder_path, char *file_name, bool is_recursive)
 {
-	char		*file_path	= get_file_path(file_name, folder_path);
+	char		*file_path	= (is_recursive) ? folder_path : get_file_path(file_name, folder_path);
 	t_pe		*pe_file	= alloc_pe(file_name, file_path);
 
 	if (pe_file && pe_file->path) {

